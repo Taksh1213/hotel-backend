@@ -27,13 +27,15 @@ connectDB();
    CORS
 =========================== */
 
+const CLIENT_URL = process.env.CLIENT_URL?.replace(/\/+$/, "");
+
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
 
   // production frontend
-  process.env.CLIENT_URL
-];
+  CLIENT_URL
+].filter(Boolean);
 
 app.use(
   cors({
