@@ -105,7 +105,7 @@ app.use(
   paymentHistoryRoutes
 );
 
- // NEW ROUTE
+// NEW ROUTE
 
 /* ===========================
    GLOBAL ERROR HANDLER
@@ -119,23 +119,38 @@ app.use((err, req, res, next) => {
   );
 
   res.status(500).json({
-    success:false,
-    message:err.message
+    success: false,
+    message: err.message
   });
 
 });
+/* ===========================
+   ROOT ROUTE
+=========================== */
 
+app.get("/", (req, res) => {
+
+  res.status(200).json({
+
+    success: true,
+
+    message:
+      "Hotel Management Backend API Running 🚀"
+
+  });
+
+});
 /* ===========================
    SERVER START
 =========================== */
 
 const PORT =
-process.env.PORT || 5000;
+  process.env.PORT || 5000;
 
-app.listen(PORT,()=>{
+app.listen(PORT, () => {
 
-console.log(
-`Server running on port ${PORT} 🚀`
-);
+  console.log(
+    `Server running on port ${PORT} 🚀`
+  );
 
 });
