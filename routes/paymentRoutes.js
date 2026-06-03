@@ -37,25 +37,35 @@ router.post("/create-checkout-session", async (req, res) => {
     }
 
     // Create Stripe Checkout Session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency: "inr",
-            product_data: {
-              name: `Room ${room.roomNumber} (${room.type})`,
-              description: `Booking from ${checkIn || "N/A"} to ${checkOut || "N/A"}`,
-            },
-            unit_amount: Math.round(totalAmount * 100), // ⚡ amount in paise
-          },
-          quantity: 1,
+
+const session = await stripe.checkout.sessions.create({
+  payment_method_types: ["card"],
+
+  mode: "payment",
+
+  line_items: [
+    {
+      price_data: {
+        currency: "inr",
+
+        product_data: {
+          name: `Room ${room.roomNumber} (${room.type})`,
+          description: `Booking from ${checkIn || "N/A"} to ${checkOut || "N/A"}`,
         },
-      ],
-      success_url: `${process.env.CLIENT_URL}/payment-success?roomId=${roomId}`,
-      cancel_url: `${process.env.CLIENT_URL}/rooms`,
-    });
+
+        unit_amount: Math.round(totalAmount * 100),
+      },
+
+      quantity: 1,
+    },
+  ],
+success_url:
+`${process.env.CLIENT_URL}/payment-success?roomId=${roomId}&checkIn=${checkIn}&checkOut=${checkOut}&amount=${totalAmount}&session_id={CHECKOUT_SESSION_ID}`,
+  cancel_url:
+  `${process.env.CLIENT_URL}/payment-cancel`,
+});
+
+
 
     // Return session URL
     res.status(200).json({ url: session.url });

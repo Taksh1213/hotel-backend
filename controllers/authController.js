@@ -9,6 +9,9 @@ export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
+    // ✅ Get uploaded image path
+    const image = req.file ? req.file.path : "";
+
     // Validate input
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
@@ -28,6 +31,7 @@ export const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      image,
       role: "admin",
     });
 
@@ -37,6 +41,7 @@ export const register = async (req, res) => {
         id: admin._id,
         name: admin.name,
         email: admin.email,
+        image: admin.image ? `${process.env.BASE_URL || "http://localhost:5000"}/${admin.image.replace(/\\/g, "/")}` : "",
         role: admin.role,
       },
     });
@@ -98,6 +103,7 @@ export const login = async (req, res) => {
         id: admin._id,
         name: admin.name,
         email: admin.email,
+        image: admin.image ? `${process.env.BASE_URL || "http://localhost:5000"}/${admin.image.replace(/\\/g, "/")}` : "",
         role: admin.role,
       },
       accessToken,
@@ -140,5 +146,69 @@ export const refreshAdminToken = async (req, res) => {
   } catch (err) {
     console.error("REFRESH TOKEN ERROR:", err);
     res.status(403).json({ message: "Invalid or expired refresh token" });
+  }
+};
+
+/* =========================
+   GET CURRENT ADMIN
+========================= */
+export const getMe = async (req, res) => {
+  try {
+    const admin = await Admin.findById(req.admin.id);
+    if (!admin) return res.status(404).json({ message: "Admin not found" });
+
+    const imageUrl = admin.image
+      ? `${process.env.BASE_URL || "http://localhost:5000"}/${admin.image.replace(/\\/g, "/")}`
+      : null;
+
+    res.json({
+      id: admin._id,
+      name: admin.name,
+      email: admin.email,
+      image: imageUrl,
+      role: admin.role,
+    });
+  } catch (error) {
+    console.error("GET ADMIN PROFILE ERROR:", error);
+    res.status(500).json({ message: "Failed to fetch admin profile" });
+  }
+};
+
+/* =========================
+   UPDATE CURRENT ADMIN
+========================= */
+export const updateMe = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const updateData = { name, email };
+
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
+    if (req.file) {
+      updateData.image = req.file.path;
+    }
+
+    const updatedAdmin = await Admin.findByIdAndUpdate(
+      req.admin.id,
+      updateData,
+      { new: true }
+    );
+
+    const imageUrl = updatedAdmin.image
+      ? `${process.env.BASE_URL || "http://localhost:5000"}/${updatedAdmin.image.replace(/\\/g, "/")}`
+      : null;
+
+    res.json({
+      id: updatedAdmin._id,
+      name: updatedAdmin.name,
+      email: updatedAdmin.email,
+      image: imageUrl,
+      role: updatedAdmin.role,
+    });
+  } catch (error) {
+    console.error("UPDATE ADMIN ERROR:", error);
+    res.status(500).json({ message: "Update failed" });
   }
 };

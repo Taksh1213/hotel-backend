@@ -13,7 +13,7 @@ export const getDashboardStats = async (req, res) => {
 
     // Use correct field for total revenue
     const revenueData = await Booking.aggregate([
-      { $group: { _id: null, total: { $sum: "$amount" } } },
+      { $group: { _id: null, total: { $sum: { $ifNull: [ "$totalAmount", "$amount" ] } } } },
     ]);
     const totalRevenue = revenueData[0]?.total || 0;
 
@@ -41,7 +41,7 @@ export const getDashboardStats = async (req, res) => {
       {
         $group: {
           _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
-          revenue: { $sum: "$amount" },
+          revenue: { $sum: { $ifNull: [ "$totalAmount", "$amount" ] } },
         },
       },
       { $sort: { "_id.year": 1, "_id.month": 1 } },
